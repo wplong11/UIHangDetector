@@ -7,8 +7,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
     
     private let hangDetector = UIHangDetector(
-        warningCriteria: 500(.milliseconds),
-        criticalCriteria: 1(.seconds),
+        warningCriteria: 600(.milliseconds),
+        criticalCriteria: 1000(.milliseconds),
         healthSignalInterval: 500(.milliseconds),
         healthSignalCheckInterval: 100(.milliseconds)
     )

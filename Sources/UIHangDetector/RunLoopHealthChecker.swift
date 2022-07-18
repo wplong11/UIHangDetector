@@ -1,15 +1,16 @@
 import Foundation
 import Combine
 
-internal final class HealthChecker {
+internal final class RunLoopHealthChecker {
     private let healthSubject = PassthroughSubject<Health, Never>()
-    private let healthSignalSubject = CurrentValueSubject<Date, Never>(Date.distantPast)
     
     private var timerThread: Thread?
     private var subscription: AnyCancellable?
     
+    private let target: RunLoop
     private let warningCriteria: TimeInterval
     private let criticalCriteria: TimeInterval
+    private let healthSignalInterval: TimeInterval
     private let healthSignalCheckInterval: TimeInterval
     
     var healthStream: AnyPublisher<Health, Never> {
@@ -19,12 +20,16 @@ internal final class HealthChecker {
     }
     
     init(
+        target: RunLoop,
         warningCriteria: Duration,
         criticalCriteria: Duration,
+        healthSignalInterval: Duration,
         healthSignalCheckInterval: Duration
     ) {
+        self.target = target
         self.warningCriteria = warningCriteria.converted(to: .seconds).value
         self.criticalCriteria = criticalCriteria.converted(to: .seconds).value
+        self.healthSignalInterval = healthSignalInterval.converted(to: .seconds).value
         self.healthSignalCheckInterval = healthSignalCheckInterval.converted(to: .seconds).value
     }
 
@@ -39,11 +44,18 @@ internal final class HealthChecker {
     }
     
     private func startImpl() {
-        self.subscription = Timer.publish(every: self.healthSignalCheckInterval, on: RunLoop.current, in: .common)
+        let healthSignalCheckTimer = Timer
+            .publish(every: self.healthSignalCheckInterval, on: RunLoop.current, in: .common)
             .autoconnect()
-            .combineLatest(self.healthSignalSubject.receive(on: RunLoop.current))
+        let healthSignalStream = Timer
+            .publish(every: self.healthSignalInterval, on: self.target, in: .common)
+            .autoconnect()
+            .prepend(AnyPublisher(Date()).receive(on: self.target))
+            .receive(on: RunLoop.current)
+
+        self.subscription = healthSignalCheckTimer.combineLatest(healthSignalStream)
             .compactMap { (now: Date, lastSignal: Date) -> TimeInterval in
-                now.timeIntervalSince(lastSignal)
+                return now.timeIntervalSince(lastSignal)
             }
             .map { (timeDiff: TimeInterval) -> Health in
                 switch (timeDiff) {
@@ -68,9 +80,5 @@ internal final class HealthChecker {
         
         self.timerThread?.cancel()
         self.timerThread = nil
-    }
-    
-    func acceptHealthSignal() {
-        self.healthSignalSubject.send(Date())
     }
 }
