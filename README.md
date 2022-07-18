@@ -7,6 +7,11 @@ UIHangDetector is a tool to detect UI Hang (a.k.a UI Freezing) in real time. The
 You can reference [Demo App](https://github.com/wplong11/UIHangDetector/tree/main/Demo), [Test Code](https://github.com/wplong11/UIHangDetector/blob/main/Tests/UIHangDetectorTests/UIHangDetectorTests.swift) or below
 
 ```swift
+import UIHangDetector
+import Combine
+
+// ...
+
 let sut = UIHangDetector(
     warningCriteria: 500(.milliseconds),
     criticalCriteria: 1(.seconds),
