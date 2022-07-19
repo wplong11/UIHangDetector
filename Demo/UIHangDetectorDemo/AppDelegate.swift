@@ -26,7 +26,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         self.window?.makeKeyAndVisible()
         
         self.hangDetector.healthStream
-            .sink { print("[\(Date())]\t\($0)") }
+            .sink { print("[\(Date())]\tHealth status: \($0)") }
             .store(in: &self.cancellableBag)
         self.hangDetector.start()
 
