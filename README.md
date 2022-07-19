@@ -15,8 +15,8 @@ import Combine
 let sut = UIHangDetector(
     warningCriteria: 500(.milliseconds),
     criticalCriteria: 1(.seconds),
-    healthSignalInterval: 500(.milliseconds),
-    healthSignalCheckInterval: 100(.milliseconds)
+    healthSignalInterval: 100(.milliseconds),
+    healthSignalCheckInterval: 50(.milliseconds)
 )
 
 var cancellableStorage = Set<AnyCancellable>()
@@ -35,3 +35,18 @@ sut.healthStream
     }
     .store(in: &cancellableStorage)
 ```
+
+## How does it work
+
+A timer running on the UI thread records the signal as a timestamp that the UI thread is alive, and the timer running on the background thread checks the time of the last signal received from the UI thread. If the time of receiving the last signal exceeds the threshold, the UI Thread health state becomes Warning or Critical. UI Thread health state naming(Good, Warning, Critical) is inspired by [Azure status] (https://status.azure.com/en-us/status)
+
+## Under the hood
+
+UI hang occurs when RunLoop of UI Thread (Main Thread) executes heavy tasks, so the rendering cycle executed in RunLoop becomes longer. The key idea is that the timers connected to RunLoop are not also fired at this time.
+
+[![runloop](https://developer.apple.com/library/archive/documentation/Cocoa/Conceptual/Multithreading/Art/runloop.jpg)](https://developer.apple.com/library/archive/documentation/Cocoa/Conceptual/Multithreading/RunLoopManagement/RunLoopManagement.html)
+
+## TODO
+
+- [ ] Support for background/foreground app switching
+  - The timer stops when it goes to the background. Therefore, a false alert may occur if the last signal time is not adjusted when switching to the foreground.
