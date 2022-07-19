@@ -40,7 +40,7 @@ https://user-images.githubusercontent.com/5109223/179643768-8a401eb5-8fd3-4a72-b
 
 ## How does it work
 
-A timer running on the UI thread records the signal as a timestamp that the UI thread is alive, and the timer running on the background thread checks the time of the last signal received from the UI thread. If the time of receiving the last signal exceeds the threshold, the UI Thread health status becomes Warning or Critical. UI Thread health status naming(Good, Warning, Critical) is inspired by [Azure status] (https://status.azure.com/en-us/status)
+A timer running on the UI thread records the signal as a timestamp that the UI thread is alive, and the timer running on the background thread checks the time of the last signal received from the UI thread. If the time of receiving the last signal exceeds the threshold, the UI Thread health status becomes Warning or Critical. UI Thread health status naming(Good, Warning, Critical) is inspired by [Azure status](https://status.azure.com/en-us/status)
 
 ## Under the hood
 
